@@ -7,41 +7,47 @@ description: Generate RC client single point of truth (SPOT) documents — multi
 
 ## Purpose
 
-Generates a complete single point of truth document for an RC client, structured as 8 separate tabs to match the actual Cekura, MeshAPI, and Workstreet SPOT docs at RevCentric.
+One-shot generates a complete single point of truth document for an RC client, structured as 8 separate tabs to match the actual Cekura, MeshAPI, and Workstreet SPOT docs at RevCentric.
 
-The output is organized tab-by-tab so the user can create each tab in Google Docs and paste the matching content block. No automation — pure content generation.
+The skill takes whatever info is in the trigger message, pulls the rest via web search, and outputs all 8 tabs in a single response. No clarifying questions, no back-and-forth. Anything not findable becomes `[TBD]`.
+
+The output is organized tab-by-tab so the user can create each tab in Google Docs and paste the matching content block.
 
 ---
 
-## Workflow
+## Workflow — One-Shot Generation
 
-### Step 1 — Gather inputs
+This skill generates the full 8-tab SPOT doc in a single response. Do not ask the user clarifying questions before generating. Do not stop at "what client?" — extract everything possible from the trigger message and web research, then output all 8 tabs.
 
-Ask only for what's not already known:
+### Step 1 — Extract what's already given
 
-- Client name and website
-- What the product does (one sentence)
-- Target buyer (title, company type, size)
-- Key contacts at the client (names, roles)
-- Campaign type (cold email, cold calling, LinkedIn, or combo)
-- Known differentiators, competitors, objections
-- Anything else relevant to the campaign
+Pull whatever the user provided in the trigger message:
+- Client name (always required — if missing, ask once and stop)
+- Website / domain
+- What they do
+- Target buyer
+- Any known contacts, differentiators, competitors, objections
 
-Mark unknowns as `[TBD]` — don't block on them.
+### Step 2 — Web research to fill gaps
 
-### Step 2 — Generate all 8 tabs
+For everything not provided, run a web search. At minimum search:
+- "[Client name] company" → website, what they do, headquarters, founders
+- "[Client name] customers" → notable logos, case studies
+- "[Client name] funding" → backers, latest round, total raised
+- "[Client name] competitors" → direct competitors, market positioning
+- "[Client name] [target buyer title]" → buyer persona context
 
-Output each tab as its own clearly labeled code block. Use the tab structure and content templates below.
+Cap research at 4–6 searches total. Move on once you have enough — don't deep-dive endlessly.
 
-### Step 3 — Hand off
+### Step 3 — Generate all 8 tabs in one response
 
-Tell the user:
+Output every tab as its own labeled code block. Mark anything still unknown after research as `[TBD]`. Do not pause to confirm details mid-generation.
 
-```
-Create a new Google Doc titled "[Client Name] Single Point of Truth"
-Add 8 tabs (Insert → Tabs in Google Docs)
-Paste the matching content into each tab
-```
+### Step 4 — Hand off
+
+After all 8 tabs are output, append the hand-off instructions at the bottom (see "Hand-off Instructions" section).
+
+If the trigger message gave nothing but a client name, that's fine — generate the doc anyway with web research filling the gaps and `[TBD]` covering the rest. The user can edit before pasting into Docs.
 
 ---
 
