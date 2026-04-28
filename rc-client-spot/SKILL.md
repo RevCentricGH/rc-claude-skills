@@ -1,6 +1,6 @@
 ---
 name: rc-client-spot
-description: Generate RC client single point of truth (SPOT) documents — multi-tab Google Docs covering campaign status, company overview, problem/solution, ICP, competitive landscape, objections, and screenplay. Use when user says "create SPOT doc for [client]", "build the client KB for [client]", "set up SPOT for [client]", "generate client brief for [client]", or "onboard [client]". Also use when starting a new RC client engagement or refreshing campaign context before an outbound push.
+description: Generate RC client single point of truth (SPOT) documents — multi-tab Google Docs covering campaign status, company overview, problem/solution, ICP, competitive landscape, objections, and screenplay. One-shot generation that pulls from onboarding call transcripts, meeting summaries, and web research. Use when user says "create SPOT doc for [client]", "build the client KB for [client]", "set up SPOT for [client]", "generate client brief for [client]", "onboard [client]", or pastes a client onboarding transcript / Gemini summary / Fireflies notes and asks to turn it into a SPOT. Also use when starting a new RC client engagement or refreshing campaign context before an outbound push.
 ---
 
 # RC Client SPOT Skill
@@ -17,37 +17,60 @@ The output is organized tab-by-tab so the user can create each tab in Google Doc
 
 ## Workflow — One-Shot Generation
 
-This skill generates the full 8-tab SPOT doc in a single response. Do not ask the user clarifying questions before generating. Do not stop at "what client?" — extract everything possible from the trigger message and web research, then output all 8 tabs.
+This skill generates the full 8-tab SPOT doc in a single response. Do not ask the user clarifying questions before generating. Extract everything possible from inputs (trigger message, attached transcripts, meeting summaries) and web research, then output all 8 tabs.
 
-### Step 1 — Extract what's already given
+### Input priority
 
-Pull whatever the user provided in the trigger message:
-- Client name (always required — if missing, ask once and stop)
-- Website / domain
-- What they do
-- Target buyer
-- Any known contacts, differentiators, competitors, objections
+Use these sources in order. Earlier sources override later ones — first-party client info beats web research every time.
 
-### Step 2 — Web research to fill gaps
+1. **Onboarding meeting transcripts or recordings (highest priority)** — anything pasted, attached, or referenced from a kickoff call, discovery call, or onboarding meeting. This is direct client voice and beats anything else.
+2. **Meeting summaries / call notes** — Gemini summaries, Fireflies notes, manual notes from client calls. Lower fidelity than raw transcripts but still first-party.
+3. **Trigger message details** — anything Kevin/Hunter typed directly into the prompt
+4. **Web research (fallback)** — only used to fill gaps left by 1–3
 
-For everything not provided, run a web search. At minimum search:
+### Step 1 — Extract from provided client material
+
+If the user pasted or attached a transcript, summary, or meeting notes, extract:
+- Client's exact words on what they do, who they sell to, why now
+- Pain points they described in their own customers' words
+- Competitors they mentioned (direct and indirect)
+- Objections they expect to hear or have already heard
+- ICP signals: titles they want targeted, companies to avoid, geo, size
+- Messaging the client wants used (or specifically does NOT want)
+- Open questions or unresolved items raised on the call
+- Names of contacts at the client (founders, ops, engineering)
+
+Quote directly from the transcript when possible — these become the highest-credibility lines in the SPOT doc.
+
+### Step 2 — Extract what else is in the trigger message
+
+Pull anything Kevin/Hunter typed: client name, website, campaign type, anything else not in the transcript.
+
+### Step 3 — Web research to fill remaining gaps
+
+For everything still missing after steps 1–2, run web searches:
 - "[Client name] company" → website, what they do, headquarters, founders
 - "[Client name] customers" → notable logos, case studies
 - "[Client name] funding" → backers, latest round, total raised
-- "[Client name] competitors" → direct competitors, market positioning
+- "[Client name] competitors" → market positioning
 - "[Client name] [target buyer title]" → buyer persona context
 
-Cap research at 4–6 searches total. Move on once you have enough — don't deep-dive endlessly.
+Cap research at 4–6 searches. Move on once you have enough.
 
-### Step 3 — Generate all 8 tabs in one response
+### Step 4 — Generate all 8 tabs in one response
 
-Output every tab as its own labeled code block. Mark anything still unknown after research as `[TBD]`. Do not pause to confirm details mid-generation.
+Output every tab as its own labeled code block. Mark anything still unknown as `[TBD]`. Do not pause mid-generation to confirm.
 
-### Step 4 — Hand off
+When a transcript was provided, add a line at the top of Tab 1 (Campaign Status) under Key Direction:
+```
+SOURCE: Onboarding call with [client contact name] on [date]
+```
 
-After all 8 tabs are output, append the hand-off instructions at the bottom (see "Hand-off Instructions" section).
+### Step 5 — Hand off
 
-If the trigger message gave nothing but a client name, that's fine — generate the doc anyway with web research filling the gaps and `[TBD]` covering the rest. The user can edit before pasting into Docs.
+After all 8 tabs are output, append the hand-off instructions at the bottom.
+
+If the trigger message gave nothing but a client name, generate anyway with web research and `[TBD]` covering the rest. The user can edit before pasting into Docs.
 
 ---
 
