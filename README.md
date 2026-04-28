@@ -12,6 +12,7 @@ Claude Code skills for the RevCentric team. Drop any of these into your Claude s
 | `rc-client-spot` | Generates 9-tab single point of truth documents for RC clients — campaign status, company overview, problem/solution, ICP, competitors, objections, screenplay, automation config | "create SPOT doc for [client]", "client brief for [client]", "RC client overview" |
 | `rc-linkedin` | Walks through the LinkedIn outbound pipeline for RC clients — Apollo search, ICP scoring, HeyReach campaign setup | "LinkedIn campaign for [client]", "load leads into HeyReach" |
 | `rc-objection-drill` | Two-mode objection trainer — Quick Drill (paste objection, get framed responses) + Live Roleplay (skill plays the prospect, you respond, get graded) | "drill me on objections", "how do I handle [X]", "roleplay me as a CTO" |
+| `rc-client-discovery` | Pre-call prep, live agenda, and question bank for RC client onboarding kickoffs. Output plugs into `rc-client-spot` | "prep me for the [client] kickoff", "discovery call for [client]", "onboarding call agenda" |
 
 ---
 
@@ -27,6 +28,7 @@ cp -r rc-client-spot ~/.claude/skills/
 cp -r revcentric-cold-calling-screenplay ~/.claude/skills/
 cp -r rc-linkedin ~/.claude/skills/
 cp -r rc-objection-drill ~/.claude/skills/
+cp -r rc-client-discovery ~/.claude/skills/
 ```
 
 2. Restart Claude Code. The skills load automatically on next session.
