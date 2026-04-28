@@ -13,6 +13,16 @@ The skill takes whatever info is in the trigger message, pulls the rest via web 
 
 The output is organized tab-by-tab so the user can create each tab in Google Docs and paste the matching content block.
 
+## Downstream consumers — what the SPOT must enable
+
+The SPOT is the source of truth for two downstream tools. The doc is incomplete if either of these can't run cleanly off it:
+
+1. **rc-automations** (https://github.com/RevCentricGH/rc-automations) — automates list building, ICP scoring, contact enrichment, and cold email sequence generation. Needs structured ICP filters, Apollo keyword passes, tech-stack signals, exclusion lists, sequence config, offer angles, sender persona. These fields live in **Tab 5 (ICP)** and **Tab 9 (Automation Config)**.
+
+2. **revcentric-cold-calling-screenplay skill** — generates cold call main pitch screenplays. Needs status markers (notable clients, awards, years), insider non-Google-able pain in symptomese, the structural differentiator, target persona context. These live in **Tab 3 (Company Overview)** and **Tab 4 (Problem/Solution)**.
+
+When generating the SPOT, treat both consumers as the readers. Don't write generic copy. Make every field actionable.
+
 ---
 
 ## Workflow — One-Shot Generation
@@ -74,18 +84,19 @@ If the trigger message gave nothing but a client name, generate anyway with web 
 
 ---
 
-## Tab Structure (8 tabs)
+## Tab Structure (9 tabs)
 
-| # | Tab Name | Purpose |
-|---|----------|---------|
-| 1 | Campaign Status | Living tab — action items, open questions, call feedback, meetings booked |
-| 2 | Campaign Brief | Executive summary — snapshot + contents + version history |
-| 3 | Company Overview | Positioning, differentiator, awards, customers |
-| 4 | Problem / Solution Overview | Market context, day-in-the-life pain, why uniquely positioned, use cases |
-| 5 | ICP & Buyer Persona | Geography, industry, firmographics, target titles, persona priority |
-| 6 | Competitor Overview & Battlecards | Direct competitors, indirect risks, build-in-house, battlecard responses |
-| 7 | Objection Handling | Objection → response table |
-| 8 | Screenplay | Cold call main pitch (use the revcentric-cold-calling-screenplay skill to generate) |
+| # | Tab Name | Purpose | Downstream consumer |
+|---|----------|---------|---------------------|
+| 1 | Campaign Status | Living tab — action items, open questions, call feedback, meetings booked | Operator |
+| 2 | Campaign Brief | Executive summary — snapshot + contents + version history | Operator |
+| 3 | Company Overview | Positioning, differentiator, awards, customers | Screenplay (status thumbnail) |
+| 4 | Problem / Solution Overview | Status markers, change in world, day-in-the-life pain, big question, UVP, measurable impact | Screenplay (full pitch) |
+| 5 | ICP & Buyer Persona | Apollo keywords, firmographics, tech signals, exclusions, target titles | rc-automations (list build) |
+| 6 | Competitor Overview & Battlecards | Direct, indirect, build-in-house, battlecards | Operator + screenplay objection handling |
+| 7 | Objection Handling | Objection → response table | Operator + cold email reply handling |
+| 8 | Screenplay | Cold call main pitch (use revcentric-cold-calling-screenplay skill) | Operator |
+| 9 | Automation Config | YAML for rc-automations client config — drop directly into pipeline/clients/{client}.yaml | rc-automations (full automation) |
 
 ---
 
@@ -201,73 +212,123 @@ Funding & Backers
 
 ### TAB 4 — Problem / Solution Overview
 
+This tab is critical for the screenplay generator. Write pain in **symptomese** — high-sensory, visceral language ("resource black hole," "death cycle," "firefighting"). NOT generic Google-able pain ("cyber threats are rising," "AI is changing everything"). Insider observations only.
+
 ```
 PROBLEM / SOLUTION OVERVIEW
 
-4.1 What's happening in their world
-[Market context — what's changing that creates urgency for this buyer right now]
+4.1 Status Markers (for screenplay)
+- Notable clients (2-4 recognizable logos): [Logo 1], [Logo 2], [Logo 3]
+- Years operating: [number]
+- Awards / recognitions: [list]
+- Backed by / parent company: [if relevant]
+- Industry credentials: [certifications, partnerships]
 
-4.2 Day-in-the-life pain (what the buyer feels)
-[Specific, visceral pain points the buyer experiences day-to-day. Not abstract — describe what their week actually looks like]
+4.2 What's happening in their world
+[Market context — the non-avoidable shift that affects this buyer's role directly. Insider knowledge only, not generic. What's changing that creates urgency RIGHT NOW]
 
-4.3 Why [Client Product] is uniquely positioned
-[The structural reason competitors can't replicate this. Tech moat, data moat, distribution moat, or insight moat]
+4.3 Day-in-the-life pain (what the buyer feels)
+[Specific, visceral pain points in symptomese. What does their Tuesday afternoon look like? What's the resource black hole? The death cycle? The firefighting? Pick ONE core pain — don't layer multiple. The single most compelling pain, described vividly]
+
+4.4 Why generic / outdated solutions are failing them today
+[The status quo challenge — why the obvious tools aren't working anymore. Sets up the UVP]
+
+4.5 Why [Client Product] is uniquely positioned
+[The structural moat. The plain vanilla with a twist. Tech moat, data moat, distribution moat, insight moat — name it specifically. Use credible expert language ("agentless architecture," "neural network trained on billions of data points")]
+
+4.6 Big Question / Big Mystery (for screenplay)
+[The industry-wide challenge framed as one rhetorical question. Under 30 words. Must be directly answerable by the UVP. Example: "How do you catch zero-day vulnerabilities in real-time and continuously monitor every external attack vector?"]
 
 CORE USE CASES
 
 7.1 Core Use Cases
-1. [Use case]
+1. [Use case — specific, measurable]
 2. [Use case]
 3. [Use case]
 
 7.2 Implementation / Support Model
-[How fast can a customer go live? What does onboarding look like?]
+[How fast can a customer go live? What does onboarding look like? Self-serve, white-glove, or hybrid?]
 
 7.3 Time-to-Value
-[How fast do they see ROI? Specific timeframe and metric]
+[How fast do they see ROI? Specific timeframe and metric. "30 days to first qualified meeting" beats "fast time to value"]
+
+7.4 Measurable Impact (for screenplay UVP)
+[Specific numbers customers see. "Finding 80, 90, sometimes 97% more public-facing assets" beats "improves visibility"]
+
+7.5 Low-Friction Hook (for screenplay UVP)
+[The "doesn't replace, bolts on" line. "No new logins. No change management." This disarms switching cost objections]
 ```
 
 ---
 
 ### TAB 5 — ICP & Buyer Persona
 
+This tab feeds rc-automations directly. Apollo keyword passes, employee ranges, tech signals, and exclusions all need to be specific enough that a list build can run off them without further input.
+
 ```
 ICP & BUYER PERSONA OVERVIEW
 
 3.1 Geography
-[Countries, regions, exclusions]
+- Include: [Countries, regions]
+- Exclude: [Sanctioned countries, geos client doesn't sell to]
 
 3.2 Industry / Segment
-[Industries to target, vertical focus, segment definitions]
+- Industries: [list — match Apollo industry tags where possible]
+- Vertical focus: [if narrower than industry]
+- Segment definition: [SMB / Mid-market / Enterprise — define by employee count]
 
-3.3 Firmographics (Hard Filters)
-- Revenue: [range]
-- Headcount: [range]
-- Funding stage: [range]
-- Tech stack signals: [if applicable]
+3.3 Firmographics (Hard Filters — for Apollo)
+- Revenue range: [min] – [max]
+- Employee range: [min] – [max]  (e.g., 11–50, 51–200, 201–500)
+- Funding stage: [Seed, Series A, Series B, etc.]
+- Years in business: [min]
 
-3.4 Target Titles (Primary)
+3.4 Apollo Keyword Passes (for list building)
+[Comma-separated keyword tags Apollo can match against. Multiple passes = broader pool. Example for Cekura: "AI voice agent", "conversational AI", "voice AI", "chat agent", "AI customer support"]
+
+3.5 Tech Stack Signals (positive — for ICP scoring)
+- Confirmed users of: [Stack signal that indicates strong fit]
+- Probable users of: [Adjacent stack signals]
+- Hiring for / job posting signals: [Roles that signal product adoption]
+
+3.6 Tech Stack Signals (negative — disqualifiers)
+- Already using competitor: [list]
+- Wrong stack indicators: [Signals that indicate they won't buy]
+
+3.7 Target Titles (Primary — decision makers)
 - [Title 1]
 - [Title 2]
 - [Title 3]
 
-3.5 Do-Not-Target (Functions / Roles)
-- [Role/function to exclude]
-- [Role/function to exclude]
+3.8 Target Titles (Secondary — influencers)
+- [Title]
+- [Title]
 
-3.6 Persona Priority Order
+3.9 Do-Not-Target (functions, titles, role keywords)
+- Functions: [HR, Legal, Finance, etc. if not buyer]
+- Title keywords to drop: [COO, CFO, recruiter, intern, sales engineer, etc.]
+- Seniority floor: [drop everyone below this level]
+
+3.10 Exclusion Lists (companies)
+- Competitor employees: [Competitor 1, Competitor 2]
+- Red-flag companies: [universities, VCs, government, non-profits]
+- Already-customer list: [if client has shared one]
+
+3.11 Persona Priority Order
 1. [Top persona — name, title, why they're priority]
 2. [Second persona]
 3. [Third persona]
 
 PERSONA PROFILES
 
-[Primary persona name]
+[Primary persona name / title]
 - Day-to-day responsibilities:
 - Top KPIs they're measured on:
 - What keeps them up at night:
-- Where they hang out (online, offline):
-- How they make purchase decisions:
+- Where they hang out (LinkedIn, Slack communities, conferences):
+- How they make purchase decisions: [bottom-up / committee / single-buyer]
+- Budget authority: [yes / influences only / no]
+- Typical sales cycle: [days/weeks/months]
 ```
 
 ---
@@ -365,14 +426,173 @@ Annotations: All inflection markers (↓)(↑)(>) and pause cues should remain i
 
 ---
 
+### TAB 9 — Automation Config
+
+This is the YAML config for rc-automations. Copy this entire block into a new file at `pipeline/clients/{client_slug}.yaml` in the rc-automations repo. Once committed, the client is fully wired up for automated list building, ICP scoring, contact enrichment, and cold email sequence generation.
+
+Pull values from Tabs 3, 4, 5, 6, 7. Don't make up values that aren't supported by the rest of the SPOT.
+
+```yaml
+# Client config for rc-automations
+# Copy to pipeline/clients/[client_slug].yaml in the rc-automations repo
+
+client_name: [ClientName]
+client_slug: [client_slug]
+client_domain: [example.com]
+apollo_key_env: APOLLO_API_KEY_[CLIENTNAME]
+
+# TAM Size — drives sequence length
+# "large" (>100K, 1 email), "medium" (50K-100K, 2 emails), "small" (<50K, 3 emails)
+tam_size: [small / medium / large]
+
+# Sequence Type
+# "standard" = Powerhouse + angle flip + authority redirect
+# "building_it_for_you" = Day 1 teaser + Day 3-4 AI deliverable (+3.2x reply rate)
+# "straight_down_middle" = Universal problem, clear offer, no heavy personalization
+sequence_type: standard
+
+# 5 Offers Framework — Email 1 angle, Email 2 flip
+# Options: make_money, save_time, save_money, reduce_risk, raise_status
+offer_angles:
+  - [primary angle]
+  - [flip angle]
+  - [tertiary angle]
+
+# Discovery — feeds list building (Apollo + Perplexity + GitHub + web signals)
+discovery:
+  apollo_passes:
+    - [keyword pass 1]
+    - [keyword pass 2]
+    - [keyword pass 3]
+  apollo_base_filters:
+    employee_ranges: ["11,50", "51,200", "201,500"]
+    locations: ["United States"]
+    funding_stages: ["Seed", "Series A", "Series B"]
+  signal:
+    type: [github_fingerprint / apollo_tech_tag / ad_spend / industry_proxy]
+    apollo_tech_tag: [tag if applicable]
+    github_keywords: [list if github_fingerprint]
+    confirmed_users_seed: [list of known confirmed users if applicable]
+  icp_qual_prompt: |
+    [Perplexity prompt — single question that confirms ICP fit. Should ask for evidence.
+    Example: "Is [Company] actively building voice or chat AI agents as a core product?
+    Answer yes/no and cite a source."]
+  contact_titles:
+    - [Title 1]
+    - [Title 2]
+    - [Title 3]
+  exclude_domains: []  # populated from existing exclusion lists
+  exclude_titles:
+    - COO
+    - CFO
+    - recruiter
+    - intern
+    - executive assistant
+  competitor_set:
+    - [Competitor 1]
+    - [Competitor 2]
+  red_flag_companies:
+    - university
+    - venture
+    - law
+    - government
+  gsheet:
+    folder_id: [TBD — create folder in client's Drive, paste ID here]
+    sheet_name: "[ClientName] — Cold Email Lists SPOT (Latest)"
+
+# ICP — company level
+company:
+  industries:
+    - [Industry 1]
+    - [Industry 2]
+  signals:
+    - [Buying signal 1]
+    - [Buying signal 2]
+  size:
+    min_employees: [N]
+    max_employees: [N]
+  exclude:
+    - [exclusion]
+
+# ICP — contact level
+contacts:
+  decision_makers:
+    - [Title]
+    - [Title]
+  influencers:
+    - [Title]
+    - [Title]
+  seniority_keywords:
+    atl: [VP, Vice President, Chief, Head of]
+    btl: [Director, Manager, Lead]
+
+# Messaging
+frameworks_allowed:
+  - creative_ideas       # Eric Template 3 (1/400 reply rate)
+  - before_after
+  - pattern_interrupt
+  - pain_based           # Josh Braun framework
+  - do_the_math
+
+value_props:
+  primary: "[One-line description of what the product does]"
+  outcomes:
+    - "[Specific outcome with number]"
+    - "[Another specific outcome]"
+  social_proof:
+    - "[Customer 1]"
+    - "[Customer 2]"
+  differentiators:
+    - "[Key differentiator]"
+
+pain_points:
+  - "[Primary pain in symptomese]"
+  - "[Secondary pain]"
+
+# SmartLead settings (Eric Nowoslawski recommended)
+smartlead:
+  campaign_prefix: "[client_slug]"
+  send_as_plain_text: true
+  max_leads_per_day: 30        # per inbox
+  min_time_between_emails: 11  # minutes — ~50/day per sender
+  max_new_leads_per_day: 250   # per campaign
+
+sequence:
+  delays:
+    email_2: 4   # days after email 1
+    email_3: 8   # days after email 1
+  variants_per_step: 2
+
+subject_line_styles:
+  email_1: curiosity_gap
+  email_2: colleague_mimic
+  email_3: colleague_mimic
+
+opt_out_line: "If this isn't relevant, just let me know and I won't email you again."
+
+# Sender persona — emails go out under client-side founder identity
+sender:
+  name: "[Founder name]"
+  title: "Business Development"
+  company: "[ClientName]"
+  email_domain: null
+  signature: |
+    [Founder name]
+    founder@[example.com]
+    [ClientName]
+```
+
+
+---
+
 ## Hand-off Instructions
 
-After generating all 8 tabs, tell the user:
+After generating all 9 tabs, tell the user:
 
 ```
 1. Open Google Docs and create a new doc titled "[Client Name] Single Point of Truth"
 2. Click Insert → Tabs to enable tabs (or right-click in the left sidebar)
-3. Create 8 tabs with these names:
+3. Create 9 tabs with these names:
    - Campaign Status
    - Campaign Brief
    - Company Overview
@@ -381,8 +601,15 @@ After generating all 8 tabs, tell the user:
    - Competitor Overview & Battlecards
    - Objection Handling
    - Screenplay
+   - Automation Config
 4. Paste the matching content block into each tab
 5. For the Screenplay tab, run the revcentric-cold-calling-screenplay skill and paste the output
+6. For the Automation Config tab, copy the YAML and save it to pipeline/clients/[client_slug].yaml in the rc-automations repo
 
 Save the doc in your RC client folder.
+
+NEXT STEPS:
+- Run rc-automations list build with the new YAML
+- Run revcentric-cold-calling-screenplay to fill Tab 8
+- Review and fill any [TBD] markers with client input
 ```
