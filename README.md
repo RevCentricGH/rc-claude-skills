@@ -8,6 +8,7 @@ Claude Code skills for the RevCentric team. Drop any of these into your Claude s
 
 | Skill | What it does | Trigger phrases |
 |---|---|---|
+| `rc-cold-email` | Runs the RC cold email pipeline end-to-end. Thin wrapper around the Railway-hosted [rc-automations](https://github.com/RevCentricGH/rc-automations). Paste a client SPOT doc URL → skill extracts Tab 9, commits the YAML to GitHub via `gh api`, kicks off an instant pipeline run on your Railway instance | "run cold email for [client]", "kick off pipeline for [client]", "push [client] to SmartLead", "build the list for [client]" |
 | `revcentric-cold-calling-screenplay` | Generates cold call main pitch screenplays (Short and Full versions) with delivery annotations | "screenplay for [client]", "cold call script", "main pitch", "talk track" |
 | `rc-client-spot` | Generates 9-tab single point of truth documents for RC clients — campaign status, company overview, problem/solution, ICP, competitors, objections, screenplay, automation config | "create SPOT doc for [client]", "client brief for [client]", "RC client overview" |
 | `rc-linkedin` | Walks through the LinkedIn outbound pipeline for RC clients — Apollo search, ICP scoring, HeyReach campaign setup | "LinkedIn campaign for [client]", "load leads into HeyReach" |
@@ -24,6 +25,7 @@ Claude Code skills for the RevCentric team. Drop any of these into your Claude s
 
 ```bash
 # Mac
+cp -r rc-cold-email ~/.claude/skills/
 cp -r rc-client-spot ~/.claude/skills/
 cp -r revcentric-cold-calling-screenplay ~/.claude/skills/
 cp -r rc-linkedin ~/.claude/skills/
@@ -43,7 +45,9 @@ Each `SKILL.md` is self-contained. Open the file, copy the full contents, and pa
 
 A skill is just a markdown file (`SKILL.md`) that tells Claude what to do when you ask for something specific. The `description` field at the top defines the trigger phrases. When you say something that matches, Claude loads the skill and follows its instructions.
 
-No code to run, no dependencies to install. The skills generate content (screenplays, SPOT doc text, LinkedIn campaign plans) that you copy-paste into the relevant tool (Google Docs, HeyReach, etc.).
+Most skills generate content (screenplays, SPOT doc text, LinkedIn campaign plans) that you copy-paste into the relevant tool (Google Docs, HeyReach, etc.) — no code to run, no dependencies to install.
+
+The exception is `rc-cold-email` — it operates the live cold email pipeline on Railway. It requires `gh` CLI auth on `RevCentricGH/rc-automations` and two env vars (`RC_AUTOMATIONS_URL`, `RC_AUTOMATIONS_ADMIN_SECRET`) so it can commit client configs and trigger pipeline runs. See the [rc-automations README](https://github.com/RevCentricGH/rc-automations) for the full operator setup, including the prerequisite Railway deploy.
 
 ---
 
