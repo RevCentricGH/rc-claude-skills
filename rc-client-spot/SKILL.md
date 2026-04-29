@@ -549,6 +549,16 @@ pain_points:
   - "[Primary pain in symptomese]"
   - "[Secondary pain]"
 
+# Copy context — narrative fields pulled from SPOT Tabs 4 and 6.
+# These feed directly into the AI copy generation prompt in build_client_context().
+# Write in first-person buyer voice where possible. Symptomese over generic language.
+copy_context:
+  change_in_world: "[From Tab 4.2 — the non-avoidable market shift creating urgency for this buyer right now. Insider knowledge, not generic. 1-2 sentences.]"
+  day_in_life_pain: "[From Tab 4.3 — visceral, symptomese description of the buyer's core pain. What does their Tuesday look like? What's the death cycle / resource black hole / firefighting? 2-3 sentences. This language goes directly into AI copy generation.]"
+  structural_differentiator: "[From Tab 4.5 — why this product is uniquely positioned vs. generic alternatives. The moat. 1 sentence, use credible expert language.]"
+  top_competitor_edge: "[From Tab 6 battlecards — our single strongest edge vs. the top named competitor. Format: 'vs [Competitor]: [edge in one sentence]']"
+  top_objection_disarm: "[From Tab 7 — the most common objection AND how to avoid triggering it in cold email copy. Format: 'Objection: [X]. Avoid language that surfaces this — instead frame around [Y]']"
+
 # SmartLead settings (Eric Nowoslawski recommended)
 smartlead:
   campaign_prefix: "[client_slug]"
@@ -587,29 +597,43 @@ sender:
 
 ## Hand-off Instructions
 
-After generating all 9 tabs, tell the user:
+After generating all 9 tabs, do the following automatically — do not wait for the user to ask:
+
+### Step 1 — Auto-write the YAML to rc-automations
+
+Extract the YAML block from Tab 9. Determine the client slug from the `client_slug` field in the YAML. Write the file directly:
+
+```
+target path: ~/rc-automations/pipeline/clients/{client_slug}.yaml
+```
+
+Use the Write tool to write it. If the file already exists, overwrite it. After writing, confirm with:
+
+```
+Written to pipeline/clients/{client_slug}.yaml — client is pipeline-ready.
+```
+
+Do NOT skip this step or tell the user to do it manually. The whole point is that SPOT generation immediately wires the client into the pipeline.
+
+### Step 2 — Tell the user what to do with the Google Doc
 
 ```
 1. Open Google Docs and create a new doc titled "[Client Name] Single Point of Truth"
 2. Click Insert → Tabs to enable tabs (or right-click in the left sidebar)
-3. Create 9 tabs with these names:
-   - Campaign Status
-   - Campaign Brief
-   - Company Overview
-   - Problem / Solution Overview
-   - ICP & Buyer Persona
-   - Competitor Overview & Battlecards
-   - Objection Handling
-   - Screenplay
-   - Automation Config
-4. Paste the matching content block into each tab
-5. For the Screenplay tab, run the revcentric-cold-calling-screenplay skill and paste the output
-6. For the Automation Config tab, copy the YAML and save it to pipeline/clients/[client_slug].yaml in the rc-automations repo
+3. Create 9 tabs: Campaign Status / Campaign Brief / Company Overview / Problem Solution / ICP & Buyer Persona / Competitor Overview / Objection Handling / Screenplay / Automation Config
+4. Paste each content block into the matching tab
+5. For the Screenplay tab, run the revcentric-cold-calling-screenplay skill
 
-Save the doc in your RC client folder.
-
-NEXT STEPS:
-- Run rc-automations list build with the new YAML
-- Run revcentric-cold-calling-screenplay to fill Tab 8
-- Review and fill any [TBD] markers with client input
+Save in the RC Clients folder in the RevCentric Shared Drive.
 ```
+
+### Step 3 — Flag any [TBD] blockers
+
+Scan the generated YAML for `[TBD]` values. If any exist in fields the pipeline requires to run (`sender.name`, `value_props.primary`, `contacts.decision_makers`, `tam_size`), flag them explicitly:
+
+```
+Pipeline blockers — fill these before running list build:
+- [field]: [TBD]
+```
+
+Fields with `[TBD]` in non-blocking sections (gsheet.folder_id, exclude_domains) can be filled later.
